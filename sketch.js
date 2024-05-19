@@ -17,13 +17,15 @@ let objectToThrow;
 let earth;
 let universe;
 
+// Standardværdier for inputfelter
 const defaultMass = "1";
 const defaultSpeed = "1";
 const defaultAngle = "45";
 const defaultVx = "8";
 const defaultVy = "8";
-const defaulAirResistance = "0.0";
+const defaultAirResistance = "0.0";
 
+// Klasse, der repræsenterer objektet, der skal kastes
 class ObjectToThrow {
   constructor(x, y, vx, vy, angle, mass) {
     this.x = x;
@@ -32,15 +34,16 @@ class ObjectToThrow {
     this.vy = vy;
     this.angle = angle;
     this.diameter = 50;
-    this.fired = false; // if true, the object is fired
-    this.stopped = false; // if true, the object is stopped (by pressing space or hitting the ground)
+    this.thrown = false; // Hvis true, er objektet kastet
+    this.stopped = false; // Hvis true, er objektet stoppet (ved at trykke på mellemrumstasten eller ramme jorden)
     this.mass = mass;
     this.showTrajectory = false;
     this.positions = [createVector(x, y)];
     this.useAirResistance = false;
-    this.airResistance = Number(defaulAirResistance);
+    this.airResistance = Number(defaultAirResistance);
   }
 
+  // Hent alle inputværdier fra brugerens input
   getAllInputValues() {
     this.mass = Number(massInput.value());
     this.angle = radians(Number(angleInput.value()));
@@ -50,6 +53,7 @@ class ObjectToThrow {
     this.airResistance = Number(inputAirResistance.value());
   }
 
+  // Udskriv data på skærmen
   printDataOnScreen() {
     push();
     fill("black");
@@ -63,6 +67,7 @@ class ObjectToThrow {
     pop();
   }
 
+  // Tegn objektet
   draw() {
     this.drawCircle();
     this.addPosition(this.x, this.y);
@@ -70,6 +75,7 @@ class ObjectToThrow {
     this.printDataOnScreen();
   }
 
+  // Tegn objektets cirkel
   drawCircle() {
     push();
     translate(this.x, this.y);
@@ -79,6 +85,7 @@ class ObjectToThrow {
     pop();
   }
 
+  // Tegn vektor
   drawVector() {
     push();
     stroke("black");
@@ -88,12 +95,14 @@ class ObjectToThrow {
     pop();
   }
 
+  // Tilføj position til positioner-arrayet
   addPosition() {
     if (this.stopped === false) {
       this.positions.push(createVector(this.x, this.y));
     }
   }
 
+  // Tegn objektets bane
   drawTrajectory() {
     if (this.showTrajectory === true) {
       push();
@@ -111,6 +120,7 @@ class ObjectToThrow {
     }
   }
 
+  // Tegn objektet i verdenen
   drawInWorld() {
     objectToThrow.draw();
     objectToThrow.move(universe);
@@ -120,18 +130,21 @@ class ObjectToThrow {
     }
   }
 
+  // Bevæg objektet
   move(universe) {
     if (!this.stopped) {
       this.x += this.vx;
       this.y -= this.vy;
-      this.vy -= (universe.gravity * this.mass) / 100; //100 is a factor to make the object fall slower
+      this.vy -= (universe.gravity * this.mass) / 100; // 100 er en faktor for at få objektet til at falde langsommere
 
       if (this.useAirResistance === true) {
         this.vx -= this.airResistance;
+        this.vy -= this.airResistance;
       }
     }
   }
 
+  // Tjek for kollision med jorden
   checkForCollision() {
     if (this.y + this.diameter / 2 + 2 > windowHeight - earth.height) {
       // Vi er landet på jorden
@@ -139,11 +152,13 @@ class ObjectToThrow {
     }
   }
 
+  // Stop objektet
   stop() {
     this.vy = 0;
     this.vx = 0;
   }
 
+  // Nulstil objektets position og egenskaber
   reset(x, y, vx, vy, angle) {
     this.x = x;
     this.y = y;
@@ -154,12 +169,14 @@ class ObjectToThrow {
   }
 }
 
+// Klasse, der repræsenterer universet med tyngdeacceleration
 class Universe {
   constructor() {
     this.gravity = 9.82;
   }
 }
 
+// Klasse, der repræsenterer jorden
 class Ground {
   constructor(height = 50) {
     this.x = 0;
@@ -168,6 +185,7 @@ class Ground {
     this.height = height;
   }
 
+  // Tegn jorden
   draw() {
     push();
     fill("green");
@@ -181,11 +199,12 @@ function preload() {
   audio = loadSound(importedAudio);
 }
 
+// Opsæt inputfelter og knapper
 function setupInputFields() {
   let x = 150;
   let y = 30;
 
-  // Mass input
+  // Masse input
   massInput = createInput(defaultMass);
   massInput.position(x, y);
   massInputLabel = createDiv("Vægt i g:");
@@ -194,7 +213,7 @@ function setupInputFields() {
     objectToThrow.getAllInputValues();
   });
 
-  // Speed input
+  // Hastighed input
   speedInput = createInput(defaultSpeed);
   speedInput.position(x, 2 * y);
   speedInputLabel = createDiv("Hastighed (m/s):");
@@ -208,7 +227,7 @@ function setupInputFields() {
     objectToThrow.getAllInputValues();
   });
 
-  // Angle input
+  // Vinkel input
   angleInput = createInput(defaultAngle, "number");
   angleInput.position(x, 3 * y);
   angleInput.attribute("min", "0");
@@ -247,22 +266,22 @@ function setupInputFields() {
     let vy = Number(inputVy.value());
     let angle = computeAngleFromVxAndVy(vx, vy);
     angleInput.value(degrees(angle));
-    // update throw object with new values
+    // Opdater objektets værdier med nye input
     objectToThrow.getAllInputValues();
   });
 
-  // Air resistance input
-  inputAirResistance = createInput(defaulAirResistance);
+  // Luftmodstand input
+  inputAirResistance = createInput(defaultAirResistance);
   inputAirResistance.position(x, 6 * y);
   inputAirResistanceLabel = createDiv("Luftmodstand:");
   inputAirResistanceLabel.position(10, 6 * y);
 
-  // Log to console button
+  // Log til konsol knap
   buttonLogToConsole = createButton("Log to console");
   buttonLogToConsole.position(x, 9 * y);
   buttonLogToConsole.mousePressed(() => {
     console.log("objectToThrow", objectToThrow);
-    // convert positions to geogebra friendly format
+    // Konverter positioner til Geogebra-venligt format
     let tmpString = "{";
     let positions = objectToThrow.positions;
     for (let i = 0; i < positions.length; i++) {
@@ -280,38 +299,38 @@ function setupInputFields() {
     console.log("positions", tmpString);
   });
 
-  // Start button
+  // Start knap
   buttonStart = createButton("Start");
   buttonStart.position(x, 7 * y);
   buttonStart.mousePressed(() => {
-    if (objectToThrow.fired === true) {
+    if (objectToThrow.thrown === true) {
       objectToThrow.reset(50, windowHeight - 75, 0, 0, 0);
     }
 
-    objectToThrow.fired = true;
+    objectToThrow.thrown = true;
     objectToThrow.getAllInputValues();
     objectToThrow.stopped = false;
   });
 
-  // Reset button
+  // Nulstil knap
   buttonReset = createButton("Reset");
   buttonReset.position(x + 50, 7 * y);
   buttonReset.mousePressed(() => {
     objectToThrow.reset(50, windowHeight - 75, 0, 0, 0);
     objectToThrow.stopped = true;
-    objectToThrow.fired = false;
+    objectToThrow.thrown = false;
     objectToThrow.positions = [];
-    // Reset input fields
+    // Nulstil inputfelter
     massInput.value(defaultMass);
     speedInput.value(defaultSpeed);
     angleInput.value(defaultAngle);
     inputVx.value(defaultVx);
     inputVy.value(defaultVy);
-    inputAirResistance.value(defaulAirResistance);
+    inputAirResistance.value(defaultAirResistance);
     objectToThrow.getAllInputValues();
   });
 
-  // Draw trajectory button
+  // Tegn bane knap
   buttonDrawPositions = createButton("Draw trajectory");
   buttonDrawPositions.position(x + 100, 7 * y);
   buttonDrawPositions.mousePressed(() => {
@@ -325,7 +344,7 @@ function setupInputFields() {
     }
   });
 
-  // Simulate air resistance button
+  // Simuler luftmodstand knap
   buttonSimulateAirResistance = createButton("Simulate air resistance");
   buttonSimulateAirResistance.position(x, 8 * y);
   buttonSimulateAirResistance.mousePressed(() => {
@@ -339,16 +358,19 @@ function setupInputFields() {
   });
 }
 
+// Beregn Vx og Vy fra vinkel og hastighed
 function computeVxAndVyFromAngle(angle, speed) {
   let vx = speed * cos(angle);
   let vy = speed * sin(angle);
   return { vx, vy };
 }
 
+// Beregn vinkel fra Vx og Vy
 function computeAngleFromVxAndVy(vx, vy) {
   return atan(vy / vx);
 }
 
+// Setup-funktion, der kører en gang ved programmets start
 function setup() {
   createCanvas(windowWidth, windowHeight);
   setupInputFields();
@@ -358,6 +380,7 @@ function setup() {
   objectToThrow.stopped = true;
 }
 
+// Tegn baggrund
 function drawBackground() {
   background(214, 234, 248);
   push();
@@ -373,6 +396,7 @@ function drawBackground() {
   pop();
 }
 
+// Tegn funktion, der kører kontinuerligt
 function draw() {
   drawBackground();
 
@@ -381,9 +405,10 @@ function draw() {
   objectToThrow.drawVector();
 }
 
+// Håndter tastetryk
 function keyPressed() {
   if (keyCode === 32) {
-    // Check for Enter-tasten
+    // Check for mellemrumstasten
     if (objectToThrow.stopped) {
       objectToThrow.stopped = false;
     } else {
@@ -391,3 +416,4 @@ function keyPressed() {
     }
   }
 }
+
